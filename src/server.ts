@@ -1,6 +1,6 @@
+import { env } from './config/env';
 import app from './app';
 import { connectDB } from './config/db';
-import { env } from './config/env';
 
 const startServer = async (): Promise<void> => {
   try {
