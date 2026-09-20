@@ -48,9 +48,17 @@ const userSchema = new Schema<IUser>(
         'Description is required for sellers',
       ],
     },
-    isvVerified: {
+    isVerified: {
       type: Boolean,
       default: false,
+    },
+    isVerificationToekn: {
+      type: String,
+      select: false,
+    },
+    isVerificationExpires: {
+      type: Date,
+      select: false,
     },
   },
   {
