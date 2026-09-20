@@ -10,7 +10,7 @@ const registerController = catchAsync(
     if (!register) {
       throw new AppError(400, 'Registration failed');
     }
-    apiResponse.success(res, register, 'Registration successful', 201);
+    apiResponse.success(res, register, 'Registration successful. Please verify your email.', 201);
   }
 );
 

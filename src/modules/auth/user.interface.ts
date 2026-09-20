@@ -8,5 +8,7 @@ export interface IUser extends Document {
   role: 'customer' | 'seller' | 'admin';
   storeName?: string;
   description?: string;
-  isvVerified: boolean;
+  isVerified: boolean;
+  isVerificationToekn: string;
+  isVerificationExpires: Date;
 }
