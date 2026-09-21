@@ -1,4 +1,4 @@
-import { registerService } from './user.service';
+import { registerService, resendVerificationService } from './user.service';
 import { Request, Response, NextFunction } from 'express';
 import AppError from '../../utils/appError';
 import catchAsync from '../../utils/catchAsync';
@@ -14,4 +14,11 @@ const registerController = catchAsync(
   }
 );
 
-export { registerController };
+const resendVerificationController = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    await resendVerificationService(req.body.email);
+    apiResponse.success(res, null, 'Verification email resent. Please check your inbox.', 200);
+  }
+);
+
+export { registerController, resendVerificationController };

@@ -48,3 +48,10 @@ export const LoginSchema = z.object({
     .string({ error: 'Password is required' })
     .min(1, { message: 'Password is required' }),
 });
+
+export const ResendVerificationSchema = z.object({
+  email: z
+    .string({ error: 'Email is required' })
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Invalid email address' }),
+});

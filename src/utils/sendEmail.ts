@@ -21,7 +21,7 @@ const sendEmail = async ({
   });
 
   await transporter.sendMail({
-    from: `"HMS" <${process.env.SMTP_FROM}>`,
+    from: `"E-com" <${process.env.SMTP_FROM}>`,
     to,
     subject,
     html,
