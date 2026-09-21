@@ -4,13 +4,18 @@ import AppError from '../../utils/appError';
 import { IUser } from './user.interface';
 import { sendVerificationEmail } from '../email/email.service';
 import { env } from '../../config/env';
+import { loginAccessToken, loginRefreshToken } from '../../utils/jwt';
 
 const VERIFICATION_TOKEN_EXPIRES_IN_MINUTES = 10;
-const VERIFICATION_TOKEN_EXPIRES_IN_MS = VERIFICATION_TOKEN_EXPIRES_IN_MINUTES * 60 * 1000;
+const VERIFICATION_TOKEN_EXPIRES_IN_MS =
+  VERIFICATION_TOKEN_EXPIRES_IN_MINUTES * 60 * 1000;
 
 const generateVerificationToken = () => {
   const rawToken = crypto.randomBytes(32).toString('hex');
-  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(rawToken)
+    .digest('hex');
   const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRES_IN_MS);
 
   return { rawToken, hashedToken, expiresAt };
@@ -64,6 +69,36 @@ const registerService = async (userData: Partial<IUser>): Promise<IUser> => {
   }
 };
 
+const loginService = async (
+  email: string,
+  password: string
+): Promise<{ user: IUser; accessToken: string; refreshToken: string }> => {
+  const user = await UserModel.findOne({ email }).select('+password');
+
+  if (!user) {
+    throw new AppError(404, 'No account found with this email');
+  }
+
+  if (!user.isVerified) {
+    throw new AppError(403, 'your email is not verified');
+  }
+
+  const isPasswordMatch = await user.isPasswordMatch(password);
+
+  if (!isPasswordMatch) {
+    throw new AppError(400, 'Invalid password');
+  }
+
+  const tokenPayload = { id: user._id.toString() };
+  const accessToken = loginAccessToken(tokenPayload);
+  const refreshToken = loginRefreshToken(tokenPayload);
+
+  user.password = undefined as unknown as string;
+  user.isVerificationToken = undefined;
+  user.isVerificationExpires = undefined;
+
+  return { user, accessToken, refreshToken };
+};
 
 const resendVerificationService = async (email: string): Promise<void> => {
   const user = await UserModel.findOne({ email });
@@ -84,4 +119,4 @@ const resendVerificationService = async (email: string): Promise<void> => {
   await dispatchVerificationEmail(user, rawToken);
 };
 
-export { registerService, resendVerificationService };
+export { registerService, resendVerificationService, loginService };
