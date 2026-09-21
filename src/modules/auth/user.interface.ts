@@ -9,6 +9,7 @@ export interface IUser extends Document {
   storeName?: string;
   description?: string;
   isVerified: boolean;
-  isVerificationToekn: string;
-  isVerificationExpires: Date;
+  isVerificationToken?: string;
+  isVerificationExpires?: Date;
+  isPasswordMatch(password: string): Promise<boolean>;
 }

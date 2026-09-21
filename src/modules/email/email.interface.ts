@@ -1,8 +1,18 @@
-export interface Message {
-  from: string;
-  to: string;
-  subject: string;
-  text: string;
-  html?: string;
+export interface EmailRecipient {
+  firstName: string;
+  lastName: string;
+  email: string;
 }
-s;
+
+export interface VerificationEmailPayload extends EmailRecipient {
+  verificationUrl: string;
+  expiresInMinutes: number;
+}
+
+export interface ResetPasswordEmailPayload extends EmailRecipient {
+  resetUrl: string;
+}
+
+export interface WelcomeEmailPayload extends EmailRecipient {
+  loginUrl: string;
+}

@@ -52,7 +52,7 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    isVerificationToekn: {
+    isVerificationToken: {
       type: String,
       select: false,
     },
@@ -63,6 +63,14 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
+  }
+);
+
+userSchema.method(
+  'isPasswordMatch',
+  async function (password: string): Promise<boolean> {
+    const user = this;
+    return bcrypt.compare(password, user.password);
   }
 );
 

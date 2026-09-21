@@ -1,184 +1,121 @@
-import nodemailer from 'nodemailer';
-import { Message } from './email.interface';
+import sendEmail from '../../utils/sendEmail';
+import {
+  EmailRecipient,
+  VerificationEmailPayload,
+  ResetPasswordEmailPayload,
+  WelcomeEmailPayload,
+} from './email.interface';
 
-export const transport = nodemailer.createTransport(config.email.smtp);
-/* istanbul ignore next */
-if (config.env !== 'test') {
-  transport
-    .verify()
-    .then(() => logger.info('Connected to email server'))
-    .catch((e) => {
-      logger.warn(
-        'Unable to connect to email server. Make sure you have configured the SMTP options in .env'
-      );
-      logger.error(e);
-    });
-}
+const BRAND_COLOR = '#006b61';
+const APP_NAME = 'E-com';
 
-export const sendEmail = async (
-  to: string,
-  subject: string,
-  text: string,
-  html: string
-): Promise<void> => {
-  const msg: Message = {
-    from: config.email.from,
-    to,
-    subject,
-    text,
-    html,
-  };
-  const response = await transport.sendMail(msg);
-  console.log('Email sent:', response);
+const getFullName = ({ firstName, lastName }: EmailRecipient): string =>
+  `${firstName} ${lastName}`;
+
+const buildEmailTemplate = (options: {
+  heading: string;
+  fullName: string;
+  description: string;
+  buttonLabel: string;
+  buttonUrl: string;
+}): string => {
+  const { heading, fullName, description, buttonLabel, buttonUrl } = options;
+  const year = new Date().getFullYear();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0; padding:0; background-color:#f4f5f7; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7; padding:40px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden;">
+            <tr>
+              <td style="background-color:${BRAND_COLOR}; padding:24px 32px;">
+                <span style="color:#ffffff; font-size:20px; font-weight:bold; letter-spacing:0.5px;">${APP_NAME}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <h1 style="margin:0 0 16px; font-size:20px; color:#111827;">${heading}</h1>
+                <p style="margin:0 0 8px; font-size:15px; color:#374151;">Hi ${fullName},</p>
+                <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#374151;">${description}</p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="border-radius:6px; background-color:${BRAND_COLOR};">
+                      <a href="${buttonUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; padding:12px 28px; font-size:15px; font-weight:bold; color:#ffffff; text-decoration:none; border-radius:6px;">${buttonLabel}</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0; font-size:13px; color:#9ca3af;">
+                  If the button above doesn't work, copy and paste this link into your browser:<br />
+                  <a href="${buttonUrl}" style="color:${BRAND_COLOR}; word-break:break-all;">${buttonUrl}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px; background-color:#f9fafb; border-top:1px solid #e5e7eb;">
+                <p style="margin:0; font-size:12px; color:#9ca3af;">&copy; ${year} ${APP_NAME}. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 };
-
-
-export const sendResetPasswordEmail = async (
-  to: string,
-  token: string
-): Promise<void> => {
-  const subject = 'Reset password';
-  // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `${config.clientUrl}/reset-password?token=${token}`;
-  const text = `Hi,
-  To reset your password, click on this link: ${resetPasswordUrl}
-  If you did not request any password resets, then ignore this email.`;
-  const html = `<div style="margin:30px; padding:30px; border:1px solid black; border-radius: 20px 10px;"><h4><strong>Dear user,</strong></h4>
-  <p>To reset your password, click on this link: <a href="${resetPasswordUrl}" target="_blank" rel="noopener noreferrer">Reset your password</a></p>
-  <p>If you did not request any password resets, please ignore this email.</p>
-  <p>Thanks,</p>
-  <p><strong>Team</strong></p></div>`;
-  await sendEmail(to, subject, text, html);
-};
-
 
 export const sendVerificationEmail = async (
-  to: string,
-  token: string,
-  name: string
+  payload: VerificationEmailPayload
 ): Promise<void> => {
-  const subject = 'Email Verification';
-  // replace this url with the link to the email verification page of your front-end app
-  const verificationEmailUrl = `${config.clientUrl}/verify-email?token=${token}`;
-  const text = `Hi ${name},
-  To verify your email, click on this link: ${verificationEmailUrl}
-  If you did not create an account, then ignore this email.`;
-  const html = `<div style="margin:30px; padding:30px; border:1px solid black; border-radius: 20px 10px;"><h4><strong>Hi ${name},</strong></h4>
-  <p>To verify your email, click on this link: <a href="${verificationEmailUrl}" target="_blank" rel="noopener noreferrer">Verify your email</a></p>
-  <p>If you did not create an account, then ignore this email.</p></div>`;
-  await sendEmail(to, subject, text, html);
+  const html = buildEmailTemplate({
+    heading: 'Verify your email address',
+    fullName: getFullName(payload),
+    description: `Thanks for signing up with ${APP_NAME}! Please confirm your email address to activate your account. This link is valid for ${payload.expiresInMinutes} minutes — if it expires, you can request a new one.`,
+    buttonLabel: 'Verify Email',
+    buttonUrl: payload.verificationUrl,
+  });
+
+  await sendEmail({
+    to: payload.email,
+    subject: 'Verify your email address',
+    html,
+  });
 };
 
-export const sendSuccessfulRegistration = async (
-  to: string,
-  token: string,
-  name: string
+export const sendResetPasswordEmail = async (
+  payload: ResetPasswordEmailPayload
 ): Promise<void> => {
-  const subject = 'Email Verification';
-  // replace this url with the link to the email verification page of your front-end app
-  const verificationEmailUrl = `${config.clientUrl}/verify-email?token=${token}`;
-  const text = `Hi ${name},
-  Congratulations! Your account has been created.
-  You are almost there. Complete the final step by verifying your email at: ${verificationEmailUrl}
-  Don't hesitate to contact us if you face any problems
-  Regards,
-  Team`;
-  const html = `<div style="margin:30px; padding:30px; border:1px solid black; border-radius: 20px 10px;"><h4><strong>Hi ${name},</strong></h4>
-  <p>Congratulations! Your account has been created.</p>
-  <p>You are almost there. Complete the final step by verifying your email at: <a href="${verificationEmailUrl}" target="_blank" rel="noopener noreferrer">Verify your email</a></p>
-  <p>Don't hesitate to contact us if you face any problems</p>
-  <p>Regards,</p>
-  <p><strong>Team</strong></p></div>`;
-  await sendEmail(to, subject, text, html);
+  const html = buildEmailTemplate({
+    heading: 'Reset your password',
+    fullName: getFullName(payload),
+    description:
+      'We received a request to reset your password. Click the button below to choose a new one. For your security, this link will expire soon. If you did not request this, you can safely ignore this email.',
+    buttonLabel: 'Reset Password',
+    buttonUrl: payload.resetUrl,
+  });
+
+  await sendEmail({
+    to: payload.email,
+    subject: 'Reset your password',
+    html,
+  });
 };
 
-
-export const sendAccountCreated = async (
-  to: string,
-  name: string
+export const sendWelcomeEmail = async (
+  payload: WelcomeEmailPayload
 ): Promise<void> => {
-  const subject = 'Account Created Successfully';
-  // replace this url with the link to the email verification page of your front-end app
-  const loginUrl = `${config.clientUrl}/auth/login`;
-  const text = `Hi ${name},
-  Congratulations! Your account has been created successfully.
-  You can now login at: ${loginUrl}
-  Don't hesitate to contact us if you face any problems
-  Regards,
-  Team`;
-  const html = `<div style="margin:30px; padding:30px; border:1px solid black; border-radius: 20px 10px;"><h4><strong>Hi ${name},</strong></h4>
-  <p>Congratulations! Your account has been created successfully.</p>
-  <p>You can now login at: <a href="${loginUrl}" target="_blank" rel="noopener noreferrer">Log in</a></p>
-  <p>Don't hesitate to contact us if you face any problems</p>
-  <p>Regards,</p>
-  <p><strong>Team</strong></p></div>`;
-  await sendEmail(to, subject, text, html);
-};
+  const html = buildEmailTemplate({
+    heading: `Welcome to ${APP_NAME}!`,
+    fullName: getFullName(payload),
+    description: `Your account has been created successfully. We're excited to have you with us — click below to get started.`,
+    buttonLabel: 'Get Started',
+    buttonUrl: payload.loginUrl,
+  });
 
-
-export const sendMeetingInvitation = async (
-  to: string,
-  memberName: string,
-  meetingDetails: {
-    name: string;
-    type: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    meetingLink?: string;
-    timezone: string;
-    createdByName: string;
-    fileUrl?: string;
-    fileType?: string;
-  }
-): Promise<void> => {
-  const subject = `Meeting Invitation: ${meetingDetails.name}`;
-  const fileSection = meetingDetails.fileUrl
-    ? `<p><strong>File:</strong> <a href="${meetingDetails.fileUrl}" style="color: #007bff;">${meetingDetails.fileUrl}</a></p>`
-    : '<p><strong>File:</strong> Will be shared soon</p>';
-  const meetingLinkSection = meetingDetails.meetingLink
-    ? `<p><strong>Meeting Link:</strong> <a href="${meetingDetails.meetingLink}" style="color: #007bff;">${meetingDetails.meetingLink}</a></p>`
-    : '<p><strong>Meeting Link:</strong> Will be shared soon</p>';
-
-  const text = `Hi ${memberName},
-
-You have been invited to a meeting.
-
-Meeting Details:
-- Name: ${meetingDetails.name}
-- Type: ${meetingDetails.type}
-- Date: ${meetingDetails.date}
-- Time: ${meetingDetails.startTime} - ${meetingDetails.endTime} (${
-    meetingDetails.timezone
-  })
-- Meeting Link: ${meetingDetails.meetingLink || 'Will be shared soon'}
-- Organized by: ${meetingDetails.createdByName}
-
-Please make sure to join the meeting on time.
-
-Regards,
-Team`;
-  const html = `<div style="margin:30px; padding:30px; border:1px solid #e0e0e0; border-radius: 10px; font-family: Arial, sans-serif;">
-  <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">Meeting Invitation</h2>
-  <h4><strong>Hi ${memberName},</strong></h4>
-  <p>You have been invited to a meeting.</p>
-
-  <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-    <h3 style="color: #007bff; margin-top: 0;">Meeting Details</h3>
-    <p><strong>Meeting Name:</strong> ${meetingDetails.name}</p>
-    <p><strong>Type:</strong> ${meetingDetails.type}</p>
-    <p><strong>Date:</strong> ${meetingDetails.date}</p>
-    <p><strong>Time:</strong> ${meetingDetails.startTime} - ${meetingDetails.endTime}</p>
-    <p><strong>Timezone:</strong> ${meetingDetails.timezone}</p>
-    ${meetingLinkSection}
-    <p><strong>Organized by:</strong> ${meetingDetails.createdByName}</p>
-    ${fileSection}
-  </div>
-  <p style="color: #666;">Please make sure to join the meeting on time.</p>
-  <p style="margin-top: 30px;">Regards,</p>
-  <p><strong>Team</strong></p>
-
-</div>`;
-
-  await sendEmail(to, subject, text, html);
+  await sendEmail({
+    to: payload.email,
+    subject: `Welcome to ${APP_NAME}!`,
+    html,
+  });
 };
