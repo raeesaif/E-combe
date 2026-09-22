@@ -11,5 +11,7 @@ export interface IUser extends Document {
   isVerified: boolean;
   isVerificationToken?: string;
   isVerificationExpires?: Date;
+  resetPasswordTokenHash?: string;
+  resetPasswordTokenExpiry?: Date;
   isPasswordMatch(password: string): Promise<boolean>;
 }
