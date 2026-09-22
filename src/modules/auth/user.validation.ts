@@ -55,3 +55,29 @@ export const ResendVerificationSchema = z.object({
     .min(1, { message: 'Email is required' })
     .email({ message: 'Invalid email address' }),
 });
+
+export const VerifyEmailSchema = z.object({
+  token: z
+    .string({ error: 'Token is required' })
+    .min(1, { message: 'Token is required' }),
+});
+
+export const ForgotPasswordSchema = z.object({
+  email: z
+    .string({ error: 'Email is required' })
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Invalid email address' }),
+});
+
+export const ResetPasswordSchema = z.object({
+  email: z
+    .string({ error: 'Email is required' })
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Invalid email address' }),
+  token: z
+    .string({ error: 'Token is required' })
+    .min(1, { message: 'Token is required' }),
+  newPassword: z
+    .string({ error: 'Password is required' })
+    .min(6, { message: 'Password must be at least 6 characters long' }),
+});
