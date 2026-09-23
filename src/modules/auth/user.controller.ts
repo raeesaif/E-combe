@@ -7,6 +7,8 @@ import {
   resetPassword,
   getMeService,
   logoutService,
+updateProfileService,
+updatePasswordService
 } from './user.service';
 import { Request, Response } from 'express';
 import AppError from '../../utils/appError';
@@ -96,6 +98,26 @@ const getMeController = catchAsync(
   }
 );
 
+const updateProfileController = catchAsync(
+    async(req:Request , res:Response):Promise<void> =>{
+        if(!req.user){
+            throw new AppError(401, 'You are not logged in! Please log in to get access.');
+        }
+        const user = await updateProfileService(String(req.user._id), req.body.firstName, req.body.lastName);
+        apiResponse.success(res, user, 'Profile updated successfully.', 200);
+    }
+)
+
+const updatePasswordController = catchAsync(
+    async(req:Request , res:Response):Promise<void> =>{
+        if(!req.user){
+            throw new AppError(401, 'You are not logged in! Please log in to get access.');
+        }
+        const user = await updatePasswordService(String(req.user._id), req.body.currentPassword, req.body.newPassword);
+        apiResponse.success(res, user, 'Password updated successfully.', 200);
+    }
+)
+
 const logoutController = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     if (!req.user) {
@@ -122,5 +144,7 @@ export {
   forgotPasswordController,
   resetPasswordController,
   getMeController,
+  updateProfileController,
+  updatePasswordController,
   logoutController,
 };
