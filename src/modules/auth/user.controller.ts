@@ -114,7 +114,7 @@ const updatePasswordController = catchAsync(
             throw new AppError(401, 'You are not logged in! Please log in to get access.');
         }
         const user = await updatePasswordService(String(req.user._id), req.body.currentPassword, req.body.newPassword);
-        apiResponse.success(res, user, 'Password updated successfully.', 200);
+        apiResponse.success(res, null, 'Password updated successfully.', 200);
     }
 )
 
