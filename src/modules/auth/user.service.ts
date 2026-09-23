@@ -14,7 +14,10 @@ const RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES = 10;
 
 const generateSecureToken = (expiresInMinutes: number) => {
   const rawToken = crypto.randomBytes(32).toString('hex');
-  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(rawToken)
+    .digest('hex');
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
   return { rawToken, hashedToken, expiresAt };
@@ -233,7 +236,6 @@ const resendVerificationService = async (email: string): Promise<void> => {
   await dispatchVerificationEmail(user, rawToken);
 };
 
-
 const getMeService = async (userId: string): Promise<IUser> => {
   const user = await UserModel.findById(userId);
   if (!user) {
@@ -242,6 +244,45 @@ const getMeService = async (userId: string): Promise<IUser> => {
   return sanitizeUser(user);
 };
 
+const updateProfileService = async (
+  userId: string,
+  firstName: string,
+  lastName: string
+): Promise<IUser> => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  user.firstName = firstName;
+  user.lastName = lastName;
+
+  await user.save();
+
+  return sanitizeUser(user);
+};
+
+const updatePasswordService = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<IUser> => {
+  const user = await UserModel.findById(userId).select('+password');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  const isPasswordMatch = await user.isPasswordMatch(currentPassword);
+
+  if (!isPasswordMatch) {
+    throw new AppError(400, 'Current password is incorrect');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return sanitizeUser(user);
+};
 
 const logoutService = async (userId: string): Promise<void> => {
   const user = await UserModel.findById(userId);
@@ -261,4 +302,6 @@ export {
   resetPassword,
   getMeService,
   logoutService,
+  updateProfileService,
+  updatePasswordService,
 };

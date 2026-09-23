@@ -6,7 +6,9 @@ import {
   forgotPasswordController,
   resetPasswordController,
   getMeController,
-  logoutController
+  logoutController,
+  updateProfileController,
+  updatePasswordController,
 } from '../modules/auth/user.controller';
 import {
   RegisterSchema,
@@ -55,6 +57,8 @@ router.post(
 );
 
 router.get('/me', authMiddleware, getMeController);
+router.patch('/update-profile', authMiddleware, updateProfileController);
+router.patch('/update-password', authMiddleware, updatePasswordController);
 router.post('/logout', authMiddleware, logoutController);
 
 export default router;
