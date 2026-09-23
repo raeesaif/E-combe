@@ -5,8 +5,10 @@ import {
   loginService,
   forgetPassword,
   resetPassword,
+  getMeService,
+  logoutService,
 } from './user.service';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import AppError from '../../utils/appError';
 import catchAsync from '../../utils/catchAsync';
 import apiResponse from '../../utils/apiResponse';
@@ -81,6 +83,37 @@ const resetPasswordController = catchAsync(
   }
 );
 
+const getMeController = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new AppError(
+        401,
+        'You are not logged in! Please log in to get access.'
+      );
+    }
+    const user = await getMeService(String(req.user._id));
+    apiResponse.success(res, user, 'User data retrieved successfully.', 200);
+  }
+);
+
+const logoutController = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new AppError(
+        401,
+        'You are not logged in! Please log in to get access.'
+      );
+    }
+    await logoutService(String(req.user._id));
+    apiResponse.success(
+      res,
+      null,
+      'You have been logged out successfully.',
+      200
+    );
+  }
+);
+
 export {
   registerController,
   loginController,
@@ -88,4 +121,6 @@ export {
   resendVerificationController,
   forgotPasswordController,
   resetPasswordController,
+  getMeController,
+  logoutController,
 };
