@@ -5,6 +5,8 @@ import {
   loginController,
   forgotPasswordController,
   resetPasswordController,
+  getMeController,
+  logoutController
 } from '../modules/auth/user.controller';
 import {
   RegisterSchema,
@@ -15,6 +17,7 @@ import {
   ResetPasswordSchema,
 } from '../modules/auth/user.validation';
 import validateSchemaPayload from '../utils/validateSchemaPayload';
+import { authMiddleware } from '../modules/auth/user.middleware';
 import { Router } from 'express';
 
 const router = Router();
@@ -50,5 +53,8 @@ router.post(
   validateSchemaPayload(ResetPasswordSchema),
   resetPasswordController
 );
+
+router.get('/me', authMiddleware, getMeController);
+router.post('/logout', authMiddleware, logoutController);
 
 export default router;

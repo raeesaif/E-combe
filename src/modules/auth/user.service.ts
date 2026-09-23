@@ -29,6 +29,7 @@ const sanitizeUser = (user: IUser): IUser => {
   user.isVerificationExpires = undefined;
   user.resetPasswordTokenHash = undefined;
   user.resetPasswordTokenExpiry = undefined;
+  user.refreshToken = undefined;
   return user;
 };
 
@@ -120,6 +121,9 @@ const loginService = async (
   const tokenPayload = { id: user._id.toString() };
   const accessToken = loginAccessToken(tokenPayload);
   const refreshToken = loginRefreshToken(tokenPayload);
+
+  user.refreshToken = refreshToken;
+  await user.save();
 
   return { user: sanitizeUser(user), accessToken, refreshToken };
 };
@@ -229,6 +233,25 @@ const resendVerificationService = async (email: string): Promise<void> => {
   await dispatchVerificationEmail(user, rawToken);
 };
 
+
+const getMeService = async (userId: string): Promise<IUser> => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+  return sanitizeUser(user);
+};
+
+
+const logoutService = async (userId: string): Promise<void> => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+  user.refreshToken = undefined;
+  await user.save();
+};
+
 export {
   registerService,
   verifyEmailService,
@@ -236,4 +259,6 @@ export {
   loginService,
   forgetPassword,
   resetPassword,
+  getMeService,
+  logoutService,
 };
