@@ -3,6 +3,7 @@ import {
   getAllCategoriesService,
   updateCategoryService,
   categoryDeleteService,
+  getCategoriesService,
 } from './category.service';
 import { Request, Response } from 'express';
 import AppError from '../../utils/appError';
@@ -22,6 +23,18 @@ const getAllCategoriesController = catchAsync(
     apiResponse.success(
       res,
       categories,
+      'Categories retrieved successfully',
+      200
+    );
+  }
+);
+
+const getCategoryController = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const categoryname = await getCategoriesService();
+    apiResponse.success(
+      res,
+      categoryname,
       'Categories retrieved successfully',
       200
     );
@@ -60,4 +73,5 @@ export {
   getAllCategoriesController,
   updateCategoryController,
   deleteCategoryController,
+  getCategoryController,
 };

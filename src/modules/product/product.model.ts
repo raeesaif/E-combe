@@ -3,6 +3,11 @@ import { IProduct } from './product.interface';
 
 const productSchema = new Schema<IProduct>(
   {
+    productId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     name: {
       type: String,
       required: [true, 'Product name is required'],
@@ -16,6 +21,11 @@ const productSchema = new Schema<IProduct>(
     category: {
       type: Schema.Types.ObjectId,
       ref: 'Category',
+      required: true,
+    },
+    seller: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     price: {

@@ -4,6 +4,7 @@ import {
   getAllCategoriesController,
   updateCategoryController,
   deleteCategoryController,
+  getCategoryController,
 } from '../modules/category/category.controller';
 import {
   CreateCategorySchema,
@@ -15,6 +16,7 @@ import { authMiddleware, restrictTo } from '../modules/auth/user.middleware';
 const router = Router();
 
 router.get('/', getAllCategoriesController);
+router.get('/active', getCategoryController);
 
 router.post(
   '/',
@@ -32,6 +34,11 @@ router.patch(
   updateCategoryController
 );
 
-router.delete('/:id', authMiddleware, restrictTo('admin'), deleteCategoryController);
+router.delete(
+  '/:id',
+  authMiddleware,
+  restrictTo('admin'),
+  deleteCategoryController
+);
 
 export default router;
