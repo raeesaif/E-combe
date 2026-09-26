@@ -50,6 +50,15 @@ const getAllCategoriesService = async () => {
   return categories;
 };
 
+const getCategoriesService = async () => {
+  const categories = await CategoryModel.find(
+    { active: true },
+    { _id: 1, name: 1 }
+  ).sort({ name: 1 });
+
+  return categories;
+};
+
 const updateCategoryService = async (
   categoryId: string,
   name: string,
@@ -90,4 +99,5 @@ export {
   getAllCategoriesService,
   updateCategoryService,
   categoryDeleteService,
+  getCategoriesService,
 };
