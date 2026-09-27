@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import app from '../src/app';
 import { connectDB } from '../src/config/db';
 
@@ -16,8 +16,8 @@ const ensureDbConnected = (): Promise<void> => {
 };
 
 export default async function handler(
-  req: IncomingMessage,
-  res: ServerResponse
+  req: VercelRequest,
+  res: VercelResponse
 ): Promise<void> {
   await ensureDbConnected();
   app(req, res);
