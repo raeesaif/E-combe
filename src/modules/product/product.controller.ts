@@ -1,6 +1,7 @@
 import {
   createProductService,
   getProductsServices,
+  getProductByIdService,
   deleteProductsService,
   updateProductsService,
 } from './product.service';
@@ -35,6 +36,14 @@ const getProductsController = catchAsync(
   async (_req: Request, res: Response): Promise<void> => {
     const products = await getProductsServices();
     apiResponse.success(res, products, 'Products retrieved successfully', 200);
+  }
+);
+
+const getProductByIdController = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const { productId } = req.params;
+    const product = await getProductByIdService(String(productId));
+    apiResponse.success(res, product, 'Product retrieved successfully', 200);
   }
 );
 
@@ -85,6 +94,7 @@ const deleteProductController = catchAsync(
 export {
   createproductController,
   getProductsController,
+  getProductByIdController,
   updateProductController,
   deleteProductController,
 };

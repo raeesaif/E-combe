@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createproductController,
   getProductsController,
+  getProductByIdController,
   updateProductController,
   deleteProductController,
 } from '../modules/product/product.controller';
@@ -16,6 +17,7 @@ import { uploadSingle } from '../utils/multer';
 const router = Router();
 
 router.get('/', getProductsController);
+router.get('/:productId', getProductByIdController);
 
 router.post(
   '/',
