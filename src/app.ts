@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use('/api/v1', routes);
+app.use('/api', routes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({

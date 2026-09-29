@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import ProductModel from './product.model';
 import { IProduct } from './product.interface';
 import cloudinary from '../../config/cloudinary';
@@ -52,6 +53,24 @@ const getProductsServices = async () => {
   return products;
 };
 
+const getProductByIdService = async (productId: string) => {
+  let product = await ProductModel.findOne({ productId })
+    .populate('category', 'name')
+    .populate('seller', 'storeName email firstName lastName');
+
+  if (!product && mongoose.isValidObjectId(productId)) {
+    product = await ProductModel.findById(productId)
+      .populate('category', 'name')
+      .populate('seller', 'storeName email firstName lastName');
+  }
+
+  if (!product) {
+    throw new AppError(404, 'Product not found');
+  }
+
+  return product;
+};
+
 const updateProductsService = async (
   productId: string,
   sellerId: string,
@@ -99,6 +118,7 @@ const deleteProductsService = async (
 export {
   createProductService,
   getProductsServices,
+  getProductByIdService,
   deleteProductsService,
   updateProductsService,
 };
