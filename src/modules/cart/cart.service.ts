@@ -39,29 +39,45 @@ const addToCartService = async (
       ],
     });
 
+    await cart.populate({
+      path: 'items.product',
+      populate: [
+        { path: 'category', select: 'name' },
+        { path: 'seller', select: 'storeName email firstName lastName' },
+      ],
+    });
+
     return cart;
   }
 
-  const existingItem = cart.items.find(
-    (item) => item.product.toString() === product._id.toString()
-  );
+  const prodIdStr = product._id.toString();
+  const existingItem = cart.items.find((item) => {
+    if (!item.product) return false;
+    const itemProdId =
+      typeof item.product === 'object' && item.product._id
+        ? item.product._id.toString()
+        : item.product.toString();
+    return itemProdId === prodIdStr;
+  });
 
   if (existingItem) {
-    const newQuantity = existingItem.quantity + qty;
-
-    if (newQuantity > product.stock) {
-      throw new AppError(400, `Only ${product.stock} items are available`);
-    }
-
-    existingItem.quantity = newQuantity;
-  } else {
-    cart.items.push({
-      product: product._id,
-      quantity: qty,
-    });
+    throw new AppError(400, 'Product is already in the cart');
   }
 
+  cart.items.push({
+    product: product._id,
+    quantity: qty,
+  });
+
   await cart.save();
+
+  await cart.populate({
+    path: 'items.product',
+    populate: [
+      { path: 'category', select: 'name' },
+      { path: 'seller', select: 'storeName email firstName lastName' },
+    ],
+  });
 
   return cart;
 };
@@ -93,9 +109,14 @@ const removeFromCartService = async (customerId: string, productId: string) => {
   }
 
   const prodIdStr = product._id.toString();
-  const existingItemIndex = cart.items.findIndex(
-    (item) => item.product.toString() === prodIdStr
-  );
+  const existingItemIndex = cart.items.findIndex((item) => {
+    if (!item.product) return false;
+    const itemProdId =
+      typeof item.product === 'object' && item.product._id
+        ? item.product._id.toString()
+        : item.product.toString();
+    return itemProdId === prodIdStr;
+  });
 
   if (existingItemIndex === -1) {
     throw new AppError(404, 'Product not found in cart');
@@ -103,6 +124,15 @@ const removeFromCartService = async (customerId: string, productId: string) => {
 
   cart.items.splice(existingItemIndex, 1);
   await cart.save();
+
+  await cart.populate({
+    path: 'items.product',
+    populate: [
+      { path: 'category', select: 'name' },
+      { path: 'seller', select: 'storeName email firstName lastName' },
+    ],
+  });
+
   return cart;
 };
 
@@ -126,9 +156,14 @@ const updateCartQuantityService = async (
   }
 
   const prodIdStr = product._id.toString();
-  const existingItem = cart.items.find(
-    (item) => item.product.toString() === prodIdStr
-  );
+  const existingItem = cart.items.find((item) => {
+    if (!item.product) return false;
+    const itemProdId =
+      typeof item.product === 'object' && item.product._id
+        ? item.product._id.toString()
+        : item.product.toString();
+    return itemProdId === prodIdStr;
+  });
 
   if (!existingItem) {
     throw new AppError(404, 'Product not found in cart');
@@ -141,6 +176,15 @@ const updateCartQuantityService = async (
 
   existingItem.quantity = qty;
   await cart.save();
+
+  await cart.populate({
+    path: 'items.product',
+    populate: [
+      { path: 'category', select: 'name' },
+      { path: 'seller', select: 'storeName email firstName lastName' },
+    ],
+  });
+
   return cart;
 };
 
