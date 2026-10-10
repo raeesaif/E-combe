@@ -65,7 +65,8 @@ const updateProductController = catchAsync(
     const product = await updateProductsService(
       String(id),
       String(req.user._id),
-      req.body
+      req.body,
+      req.file
     );
     apiResponse.success(res, product, 'Product updated successfully', 200);
   }

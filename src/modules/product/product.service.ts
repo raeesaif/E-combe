@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import ProductModel from './product.model';
 import { IProduct } from './product.interface';
 import cloudinary from '../../config/cloudinary';
@@ -74,14 +74,14 @@ const getProductByIdService = async (productId: string) => {
 const updateProductsService = async (
   productId: string,
   sellerId: string,
-  updateData: Partial<IProduct>
+  updateData: Partial<IProduct>,
+  file?: Express.Multer.File
 ): Promise<IProduct> => {
   const product = await ProductModel.findById(productId);
 
   if (!product) {
     throw new AppError(404, 'Product not found');
   }
-
   if (product.seller.toString() !== sellerId) {
     throw new AppError(
       403,
@@ -89,8 +89,28 @@ const updateProductsService = async (
     );
   }
 
+  const oldImagePublicId = product.productImagePublicId;
+
   Object.assign(product, updateData);
+
+  if (file) {
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      folder: 'productImages',
+    });
+
+    product.productImage = uploadResult.secure_url;
+    product.productImagePublicId = uploadResult.public_id;
+  }
+
   await product.save();
+
+  if (file && oldImagePublicId) {
+    try {
+      await cloudinary.uploader.destroy(oldImagePublicId);
+    } catch (error) {
+      console.error('Failed to delete old product image:', error);
+    }
+  }
 
   return product;
 };

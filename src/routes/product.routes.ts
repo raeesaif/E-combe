@@ -32,6 +32,7 @@ router.patch(
   '/:id',
   authMiddleware,
   restrictTo('seller'),
+  uploadSingle('productImage'),
   validateSchemaPayload(UpdateProductSchema),
   updateProductController
 );
