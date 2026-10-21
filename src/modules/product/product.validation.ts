@@ -9,6 +9,12 @@ export const CreateProductSchema = z.object({
   price: z.coerce.number({ error: 'Price is required' }).min(0, { message: 'Price cannot be negative' }),
   discount: z.coerce.number().min(0, { message: 'Discount cannot be negative' }).optional(),
   stock: z.coerce.number({ error: 'Stock is required' }).min(0, { message: 'Stock cannot be negative' }),
+  isFeatured: z
+    .preprocess((val) => {
+      if (typeof val === 'string') return val === 'true';
+      return val;
+    }, z.boolean())
+    .optional(),
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();
