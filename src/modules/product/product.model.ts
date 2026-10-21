@@ -43,6 +43,10 @@ const productSchema = new Schema<IProduct>(
       required: [true, 'Product stock is required'],
       min: [0, 'Stock cannot be negative'],
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     productImage: {
       type: String,
       required: [true, 'Product image is required'],
@@ -55,6 +59,12 @@ const productSchema = new Schema<IProduct>(
     timestamps: true,
   }
 );
+
+productSchema.index({ category: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ stock: 1 });
+productSchema.index({ isFeatured: 1 });
+productSchema.index({ createdAt: -1 });
 
 const ProductModel = model<IProduct>('Product', productSchema);
 

@@ -33,9 +33,15 @@ const createproductController = catchAsync(
 );
 
 const getProductsController = catchAsync(
-  async (_req: Request, res: Response): Promise<void> => {
-    const products = await getProductsServices();
-    apiResponse.success(res, products, 'Products retrieved successfully', 200);
+  async (req: Request, res: Response): Promise<void> => {
+    const { products, pagination } = await getProductsServices(req.query);
+    apiResponse.success(
+      res,
+      products,
+      'Products retrieved successfully',
+      200,
+      pagination
+    );
   }
 );
 
